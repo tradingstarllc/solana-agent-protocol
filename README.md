@@ -57,7 +57,7 @@ SAP validation responses include fields compatible with [ERC-8004 (Trustless Age
   - SAP Identity: `register_identity`, `attest_verification`, `bind_depin_device`, `flag_sybil`, `update_trust_level`
   - Lifecycle: `rotate_identity`, `delegate_authority`, `revoke_delegation`
 - **AgentIdentity PDA:** 366 bytes — identity, trust level, DePIN binding, delegation, rotation history
-- **API:** https://web-production-419d9.up.railway.app (90+ endpoints)
+- **API:** https://youragent.id (90+ endpoints)
 - **SDK:** `npm install @moltlaunch/sdk@2.4.0`
 - **On-chain AI:** POA-Scorer on Solana devnet via Cauldron/Frostbite
 - **Registry:** 174 Colosseum hackathon projects evaluated

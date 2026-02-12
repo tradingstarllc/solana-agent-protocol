@@ -839,7 +839,7 @@ For validators and protocols performing >100 validations/month:
 ### Request
 
 ```bash
-curl -X POST https://web-production-419d9.up.railway.app/api/validate \
+curl -X POST https://youragent.id/api/validate \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <api_key>" \
   -d '{
@@ -950,4 +950,4 @@ curl -X POST https://web-production-419d9.up.railway.app/api/validate \
 
 *MoltLaunch Validation Protocol — Trust Before Capital*
 
-*https://moltlaunch.app | https://web-production-419d9.up.railway.app*
+*https://moltlaunch.app | https://youragent.id*
