@@ -6,7 +6,9 @@
 
 ## What Is This?
 
-SAP defines how AI agents establish identity, prove capabilities, and build reputation on Solana. Think ERC-8004 (Trustless Agents) but Solana-native — leveraging DePIN hardware attestations, STARK zero-knowledge proofs, and on-chain AI scoring.
+SAP defines how AI agents establish identity, prove capabilities, and build reputation on Solana. Think ERC-8004 (Trustless Agents) but Solana-native — leveraging DePIN hardware attestations, STARK-inspired zero-knowledge proofs, and on-chain AI scoring.
+
+> **Note on STARK proofs:** Current implementation provides ~32-bit security with real FRI protocol and Merkle commitments. This is a simplified demonstration prover, not production-grade. See `stark-prover/README.md` for honest parameter comparison.
 
 This is **not** a SIMD (Solana Improvement Document). SIMDs are for protocol-level changes. SAP is for application-layer standards that any Solana program or agent can adopt.
 

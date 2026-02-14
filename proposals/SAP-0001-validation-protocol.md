@@ -317,7 +317,7 @@ Fingerprints MUST remain stable across sessions for the same agent on the same h
 
 ### 2.5 STARK Proof Types
 
-The protocol supports four types of STARK proofs, each designed for different verification scenarios. All proofs use Circle STARKs over the Mersenne-31 (M31) field, implemented via the STWO prover.
+The protocol supports four types of STARK proofs, each designed for different verification scenarios. All proofs use simplified STARK-inspired proofs over the Mersenne-31 (M31) field. The current implementation uses real polynomial commitments, FRI folding, and Merkle-based verification, but with reduced security parameters (~32-bit). Production STWO integration is planned but not yet implemented.
 
 #### 2.5.1 Threshold Proof
 
@@ -388,12 +388,12 @@ The protocol supports four types of STARK proofs, each designed for different ve
 | Parameter | Value |
 |-----------|-------|
 | Field | Mersenne-31 (M31 = 2³¹ - 1) |
-| Proof System | Circle STARK (STWO) |
-| Proof Size | ~6 KB |
-| Verification Cost | ~50,000 CU (Solana) |
-| Security Level | 128-bit (post-quantum) |
+| Proof System | STARK-lite (FRI + Merkle, inspired by Circle STARKs) |
+| Proof Size | ~30 KB (JSON) |
+| Verification Cost | Off-chain (on-chain verification not yet implemented) |
+| Security Level | ~32-bit (demonstration; production target: 128-bit) |
 | Trusted Setup | None required |
-| Prover Time | ~2-5 seconds |
+| Prover Time | <1 second |
 
 ### 2.6 DePIN Integration
 
