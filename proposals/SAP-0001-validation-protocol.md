@@ -468,28 +468,84 @@ Example:
 - Queryable via RPC `getSignaturesForAddress`
 - Low cost (~0.000005 SOL per attestation)
 
-#### 2.7.2 Program Derived Addresses (Future — Phase 3)
+#### 2.7.2 Program Derived Addresses (Implemented — V3)
 
-A dedicated Solana program will store attestations in PDAs for richer querying:
+The MoltLaunch Anchor program (`6AZSAhq4iJTwCfGEVssoa1p3GnBqGkbcQ1iDdP1U1pSb`, devnet) stores agent identity and attestations in 4 PDA types:
 
 ```rust
+// 1. ProtocolConfig — singleton
+// Seeds: ["moltlaunch"]
 #[account]
-pub struct AgentAttestation {
-    pub agent_id: [u8; 32],           // SHA-256 of agentId
-    pub trust_level: u8,              // 0-5
-    pub attestation_hash: [u8; 32],   // Full attestation hash
-    pub fingerprint: [u8; 32],        // Hardware fingerprint hash
-    pub scorer_program: Pubkey,       // Program that computed score
-    pub proof_hash: [u8; 32],         // STARK proof hash
-    pub created_at: i64,              // Unix timestamp
-    pub expires_at: i64,              // Expiry timestamp
-    pub revoked: bool,                // Revocation flag
-    pub bump: u8,                     // PDA bump seed
+pub struct ProtocolConfig {
+    pub admin: Pubkey,           // Protocol admin
+    pub revocation_nonce: u64,   // Global revocation counter
+    pub total_agents: u64,
+    pub total_attestations: u64,
+    pub paused: bool,
+    pub bump: u8,
 }
 
-// PDA derivation:
-// seeds = [b"attestation", agent_id, &trust_level.to_le_bytes()]
+// 2. Authority — one per authorized verifier
+// Seeds: ["authority", authority_pubkey]
+#[account]
+pub struct Authority {
+    pub pubkey: Pubkey,
+    pub authority_type: AuthorityType,  // Single | MultisigMember | OracleOperator | NCNValidator
+    pub attestation_count: u64,
+    pub active: bool,
+    pub added_by: Pubkey,
+    pub added_at: i64,
+    pub bump: u8,
+}
+
+// 3. AgentIdentity — composable signal hub
+// Seeds: ["agent", wallet_pubkey]
+#[account]
+pub struct AgentIdentity {
+    pub wallet: Pubkey,
+    pub infra_type: InfraType,       // Unknown | Cloud | TEE | DePIN
+    pub has_economic_stake: bool,
+    pub has_hardware_binding: bool,
+    pub attestation_count: u8,
+    pub is_flagged: bool,
+    pub trust_score: u8,             // Derived, never set directly
+    pub last_verified: i64,
+    pub nonce: u64,                  // Matches config.revocation_nonce when fresh
+    pub registered_at: i64,
+    pub name: String,                // max 32 chars
+    pub bump: u8,
+}
+
+// 4. Attestation — one per (agent, authority) pair
+// Seeds: ["attestation", agent_wallet, authority_pubkey]
+#[account]
+pub struct Attestation {
+    pub agent: Pubkey,
+    pub authority: Pubkey,
+    pub authority_type: AuthorityType,
+    pub signal_contributed: SignalType,  // InfraCloud | InfraTEE | InfraDePIN | EconomicStake | HardwareBinding | General
+    pub attestation_hash: [u8; 32],
+    pub tee_quote: Option<[u8; 32]>,
+    pub created_at: i64,
+    pub expires_at: i64,
+    pub revoked: bool,
+    pub bump: u8,
+}
 ```
+
+**12 Instructions:**
+- Admin: `initialize`, `add_authority`, `remove_authority`, `set_paused`, `transfer_admin`
+- Agent: `register_agent`, `flag_agent`, `unflag_agent`, `refresh_identity_signals`
+- Attestation: `submit_attestation`, `revoke_attestation`, `close_attestation`
+
+**Trust Score Derivation** (via `refresh_identity_signals`, permissionless):
+- Reads all attestation PDAs from `remaining_accounts`
+- Skips revoked and expired attestations
+- Rebuilds signal flags (infra_type, has_economic_stake, has_hardware_binding)
+- Computes score: +20 (≥1 attestation) + 10/25/35 (Cloud/TEE/DePIN) + 25 (stake) + 20 (hardware)
+- Zeroes score if `is_flagged`
+
+> **Note:** V2 specified 6 PDAs (including Challenge and Reputation) and 14 instructions. V3 simplified to 4 PDAs and 12 instructions. Challenge-response is handled off-chain by the verify service. Reputation is derived from attestation composition rather than stored separately.
 
 #### 2.7.3 Cross-Chain via Wormhole (Future — Phase 4)
 
@@ -784,7 +840,10 @@ For validators and protocols performing >100 validations/month:
 
 ### Phase 3: On-Chain Program
 
-- [ ] Deploy `AgentAttestation` PDA program to Solana devnet
+- [x] Deploy V3 Anchor program to Solana devnet (`6AZSAhq4iJTwCfGEVssoa1p3GnBqGkbcQ1iDdP1U1pSb`)
+- [x] 4 PDAs (ProtocolConfig, Authority, AgentIdentity, Attestation), 12 instructions
+- [x] Permissionless trust score refresh via `remaining_accounts` pattern
+- [x] Squads multisig governance (2-of-3, devnet)
 - [ ] Implement on-chain STARK verifier (Murkl collaboration)
 - [ ] Enable third-party attestation queries via RPC
 - [ ] Launch on mainnet-beta

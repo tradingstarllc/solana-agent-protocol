@@ -54,11 +54,15 @@ SAP validation responses include fields compatible with [ERC-8004 (Trustless Age
 
 [MoltLaunch](https://github.com/tradingstarllc/moltlaunch) provides a working implementation:
 
-- **Anchor Program:** 14 instructions on Solana devnet
-  - Launchpad: `initialize`, `register_agent`, `verify_agent`, `create_launch`, `buy_tokens`, `finalize_launch`
-  - SAP Identity: `register_identity`, `attest_verification`, `bind_depin_device`, `flag_sybil`, `update_trust_level`
-  - Lifecycle: `rotate_identity`, `delegate_authority`, `revoke_delegation`
-- **AgentIdentity PDA:** 366 bytes — identity, trust level, DePIN binding, delegation, rotation history
+- **Anchor Program (V3):** 12 instructions, 4 PDAs on Solana devnet (`6AZSAhq4iJTwCfGEVssoa1p3GnBqGkbcQ1iDdP1U1pSb`)
+  - Admin: `initialize`, `add_authority`, `remove_authority`, `set_paused`, `transfer_admin`
+  - Agent: `register_agent`, `flag_agent`, `unflag_agent`, `refresh_identity_signals`
+  - Attestation: `submit_attestation`, `revoke_attestation`, `close_attestation`
+- **4 PDAs:**
+  - `ProtocolConfig` `["moltlaunch"]` — singleton, admin, revocation nonce, pause state
+  - `Authority` `["authority", pubkey]` — per verifier, type (Single/Multisig/Oracle/NCN), active status
+  - `AgentIdentity` `["agent", wallet]` — composable signals, derived trust score, infra type, flags
+  - `Attestation` `["attestation", agent_wallet, authority_pubkey]` — per (agent, authority) pair, signal type, expiry, revocation
 - **API:** https://youragent.id (90+ endpoints)
 - **SDK:** `npm install @moltlaunch/sdk@2.4.0`
 - **On-chain AI:** POA-Scorer on Solana devnet via Cauldron/Frostbite
